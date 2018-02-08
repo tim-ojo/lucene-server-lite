@@ -21,6 +21,7 @@ public class IndexStoreTest {
                 .setIndexStatus(IndexStatus.OK)
                 .setCacheQueries(true)
                 .setCacheTime(10, TimeUnit.MINUTES)
+                .setStopWords("some,additional,stop,words")
                 .build();
 
         // act
@@ -31,6 +32,8 @@ public class IndexStoreTest {
         Assert.assertEquals(retrieved.getIndexName(), testIndexName);
         Assert.assertEquals(retrieved.isCacheQueries(), true);
         Assert.assertEquals(retrieved.getCacheTime(), 10);
+        Assert.assertEquals(retrieved.getStopWords(), "some,additional,stop,words");
+        Assert.assertNull(retrieved.getStopWordsAdditive());
 
         // act
         long indexId = retrieved.getIndexId();
@@ -43,23 +46,5 @@ public class IndexStoreTest {
         Assert.assertEquals(retrieved.getIndexName(), testIndexName);
         Assert.assertEquals(retrieved.getCacheTime(), 30);
         Assert.assertEquals(retrieved.getIndexId(), indexId);
-    }
-
-    @Test
-    public void tempTest() {
-        String jsonArrStr = "[{\"key1\": \"bob\", \"key2\": \"sue\"},{\"key1\": \"jamaal\", \"key2\":\"shayla\"}]";
-        String jsonStr = "{\"key1\": \"bob\", \"key2\": \"sue\"}";
-
-        if (jsonArrStr.startsWith("[") && jsonArrStr.endsWith("]"))
-        {
-            JsonArray jsonArray = new JsonArray(jsonArrStr);
-            jsonArray.forEach(json -> ((JsonObject)json).put("neuKey", "neuValue"));
-            System.out.println(jsonArray);
-        }
-
-        if (!jsonStr.startsWith("[")) {
-            JsonObject jsonObject = new JsonObject("{\"key1\": \"bob\", \"key2\": \"sue\"}");
-            System.out.println(jsonObject);
-        }
     }
 }

@@ -63,7 +63,7 @@ public class IndexStoreVerticle extends AbstractVerticle {
 
             Index currIndex = selectedIndex != null ? indexStore.get(selectedIndex): indexStore.get(newIndex.getIndexName());
             if (currIndex == null) { // Index doesn't exist already. Create new
-                newIndex.validate();
+                newIndex.validateNew();
                 newIndex.setIndexStatus(IndexStatus.OK);
 
                 indexStore.store(newIndex);
@@ -72,6 +72,7 @@ public class IndexStoreVerticle extends AbstractVerticle {
                 objectMessage.reply(Json.encode(newIndex));
             } else { // Modify existing index
                 if (currIndex.hasDifferences(newIndex)){
+                    newIndex.validate();
                     currIndex.merge(newIndex);
                     indexStore.store(currIndex);
 

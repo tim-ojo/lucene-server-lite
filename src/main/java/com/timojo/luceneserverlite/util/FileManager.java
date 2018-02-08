@@ -6,6 +6,7 @@ import io.vertx.core.logging.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -38,5 +39,9 @@ public class FileManager {
         } catch (IOException e) {
             logger.error("Could not delete index folder: " + indexId, e);
         }
+    }
+
+    public static Path indexPath(long indexId) {
+        return Paths.get("data" + File.separator + indexId);
     }
 }

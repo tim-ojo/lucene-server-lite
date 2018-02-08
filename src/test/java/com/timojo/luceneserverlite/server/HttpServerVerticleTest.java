@@ -60,6 +60,7 @@ public class HttpServerVerticleTest {
                 .addField("bookTitle", "text")
                 .addField("bookYear", "INT")
                 .addField("isbn", "String")
+                .setAnalyzer("org.apache.lucene.analysis.de.GermanAnalyzer")
                 .build());
         final String length = Integer.toString(json.length());
 
@@ -96,6 +97,7 @@ public class HttpServerVerticleTest {
                 context.assertEquals(1L, index.getCacheTime());
                 context.assertEquals(3, index.getFields().size());
                 context.assertNotNull(index.getIndexId());
+                context.assertNull(index.getRamBufferSizeMB());
 
                 async2.complete();
             });
