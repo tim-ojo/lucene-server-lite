@@ -4,7 +4,7 @@ import com.timojo.luceneserverlite.models.Globals;
 import com.timojo.luceneserverlite.store.IndexStore;
 import com.timojo.luceneserverlite.store.IndexStoreFactory;
 import com.timojo.luceneserverlite.util.EventBusAddresses;
-import com.timojo.luceneserverlite.writer.DocumentQueueProvider;
+import com.timojo.luceneserverlite.writer.DocumentQueueFactory;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
@@ -164,11 +164,11 @@ public class HttpServerVerticle extends AbstractVerticle {
                 jsonArray.add(jsonObject);
             }
 
-            Queue<JsonObject> documentQueue = DocumentQueueProvider.getQueue();
+            Queue<JsonObject> documentQueue = DocumentQueueFactory.INSTANCE.getQueue();
 
             String resourceExhaustedMessage = "Resource Exhausted: Server document write queue full. Queue Capacity = " +
-                    DocumentQueueProvider.getMaxQueueSize();
-            if (jsonArray.size() + documentQueue.size() > DocumentQueueProvider.getMaxQueueSize()){
+                    DocumentQueueFactory.INSTANCE.getMaxQueueSize();
+            if (jsonArray.size() + documentQueue.size() > DocumentQueueFactory.INSTANCE.getMaxQueueSize()){
                 routingContext.response()
                         .setStatusCode(500)
                         .end(resourceExhaustedMessage);
