@@ -3,7 +3,7 @@ package com.timojo.luceneserverlite.server.launcher;
 import com.timojo.luceneserverlite.server.HttpServerVerticle;
 import com.timojo.luceneserverlite.store.IndexStoreVerticle;
 import com.timojo.luceneserverlite.util.FileManager;
-import com.timojo.luceneserverlite.writer.DocumentQueueProvider;
+import com.timojo.luceneserverlite.writer.DocumentQueueFactory;
 import com.timojo.luceneserverlite.writer.DocumentWriterVerticle;
 import io.vertx.core.*;
 
@@ -17,7 +17,7 @@ public class LauncherVerticle extends AbstractVerticle {
     public void start(Future<Void> startFuture) throws Exception {
         // initialize environment
         FileManager.ensureDataFolderExists();
-        DocumentQueueProvider.initializeQueue(config().getInteger("writer.queue.size", 0));
+        DocumentQueueFactory.initialize(config());
 
         // list of all the verticles to deploy
         List<VerticleDeployment> verticleDeployments = Arrays.asList(
