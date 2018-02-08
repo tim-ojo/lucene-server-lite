@@ -24,3 +24,27 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'io.vertx', name: 'vertx-unit', version: '3.4.2'
 }
+
+/**
+ * Configures the JUnit test behavior
+ */
+test {
+    //the parent directory from which the test should be started
+    workingDir = 'src'
+
+    // Specifies whether test classes should be detected
+    scanForTestClasses = true
+
+    // The include pattern to scan for test classes
+    include "com/timojo/luceneserverlite/**"
+
+    //defines if a build should fail if one test fails or if it should be ignored
+    ignoreFailures = false
+
+    // this closure will be called everytime after one sinlge test has been executed
+    afterTest { test, result ->
+        def time = (result.getEndTime() - result.getStartTime()) / 1000
+
+        logger.lifecycle("${test.getName()} took: ${time} seconds! -> ${result.getResultType()}")
+    }
+}
