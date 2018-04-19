@@ -7,6 +7,7 @@ import com.timojo.luceneserverlite.util.AnalyzerHelper;
 import com.timojo.luceneserverlite.util.InputChecker;
 import com.timojo.luceneserverlite.util.MergePolicyHelper;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.document.FieldType;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -22,7 +23,7 @@ public class Index implements Serializable {
     private Boolean cacheQueries;
     private Long cacheTime;
     private TimeUnit cacheTimeUnit;
-    private Map<String, LuceneType> fields = new HashMap<>();
+    private Map<String, FieldType> fields = new HashMap<>();
 
     private Boolean useCompoundFile;
     private Double ramBufferSizeMB;
@@ -36,7 +37,7 @@ public class Index implements Serializable {
     }
 
     private Index(Builder builder) {
-        InputChecker.isNotNullOrEmpty(builder.indexName, "indexName must be set");
+        //InputChecker.isNotNullOrEmpty(builder.indexName, "indexName must be set");
 
         this.indexId = System.currentTimeMillis();
         this.indexName = builder.indexName;
@@ -102,11 +103,11 @@ public class Index implements Serializable {
         this.cacheTimeUnit = cacheTimeUnit;
     }
 
-    public Map<String, LuceneType> getFields() {
+    public Map<String, FieldType> getFields() {
         return fields;
     }
 
-    public void setFields(Map<String, LuceneType> fields) {
+    public void setFields(Map<String, FieldType> fields) {
         this.fields = fields;
     }
 
@@ -288,7 +289,7 @@ public class Index implements Serializable {
         private boolean cacheQueries = false;
         private long cacheTime = 0L;
         private TimeUnit cacheTimeUnit = TimeUnit.MILLISECONDS;
-        private Map<String, LuceneType> fields = new HashMap<>();
+        private Map<String, FieldType> fields = new HashMap<>();
 
         private Boolean useCompoundFile;
         private Double ramBufferSizeMB;
@@ -298,75 +299,93 @@ public class Index implements Serializable {
         private String mergePolicy;
 
         public Builder setIndexName(String indexName) {
-            this.indexName = indexName;
+            if (indexName != null && !indexName.isEmpty())
+                this.indexName = indexName;
+
             return this;
         }
 
-        public Builder setIndexStatus(IndexStatus indexStatus) {
-            this.indexStatus = indexStatus;
+        public Builder setIndexStatus(String indexStatus) {
+            if (indexStatus != null)
+                this.indexStatus = IndexStatus.valueOf(indexStatus.toUpperCase(Locale.ENGLISH));
             return this;
         }
 
-        public Builder setCacheQueries(boolean cacheQueries) {
-            this.cacheQueries = cacheQueries;
+        public Builder setCacheQueries(Boolean cacheQueries) {
+            if (cacheQueries != null)
+                this.cacheQueries = cacheQueries;
             return this;
         }
 
-        public Builder setCacheTime(long cacheTime, TimeUnit cacheTimeUnit) {
-            this.cacheTime = cacheTime;
-            this.cacheTimeUnit = cacheTimeUnit;
+        public Builder setCacheTime(Long cacheTime, TimeUnit cacheTimeUnit) {
+            if (cacheTime != null && cacheTimeUnit != null) {
+                this.cacheTime = cacheTime;
+                this.cacheTimeUnit = cacheTimeUnit;
+            }
+
             return this;
         }
 
-        public Builder addAllFields(Map<String, LuceneType> fields) {
+        public Builder setCacheTime(Long cacheTime, String cacheTimeUnit) {
+            if (cacheTime != null && cacheTimeUnit != null) {
+                this.cacheTime = cacheTime;
+                this.cacheTimeUnit = TimeUnit.valueOf(cacheTimeUnit.toUpperCase(Locale.ENGLISH));
+            }
+
+            return this;
+        }
+
+        public Builder addAllFields(Map<String, FieldType> fields) {
             if (fields != null)
                 this.fields.putAll(fields);
             return this;
         }
 
-        public Builder addField(String fieldName, String fieldType) {
-            this.fields.put(fieldName, LuceneType.valueOf(fieldType.toUpperCase(Locale.ENGLISH)));
+        public Builder addField(String fieldName, FieldType fieldType) {
+            if (fieldName != null && !fieldName.isEmpty() && fieldType != null)
+                this.fields.put(fieldName, fieldType);
             return this;
         }
 
-        public Builder addField(String fieldName, LuceneType fieldType) {
-            this.fields.put(fieldName, fieldType);
-            return this;
-        }
-
-        public Builder setFields(Map<String, LuceneType> fields) {
+        public Builder setFields(Map<String, FieldType> fields) {
             if (fields != null)
                 this.fields = fields;
             return this;
         }
 
-        public Builder setUseCompoundFile(boolean useCompoundFile) {
-            this.useCompoundFile = useCompoundFile;
+        public Builder setUseCompoundFile(Boolean useCompoundFile) {
+            if (useCompoundFile != null)
+                this.useCompoundFile = useCompoundFile;
             return this;
         }
 
-        public Builder setRamBufferSizeMB(double ramBufferSizeMB) {
-            this.ramBufferSizeMB = ramBufferSizeMB;
+        public Builder setRamBufferSizeMB(Double ramBufferSizeMB) {
+            if (ramBufferSizeMB != null)
+                this.ramBufferSizeMB = ramBufferSizeMB;
             return this;
         }
 
         public Builder setStopWords(String stopWords) {
-            this.stopWords = stopWords;
+            if (stopWords != null)
+                this.stopWords = stopWords;
             return this;
         }
 
-        public Builder setStopWordsAdditive(boolean stopWordsAdditive) {
-            this.stopWordsAdditive = stopWordsAdditive;
+        public Builder setStopWordsAdditive(Boolean stopWordsAdditive) {
+            if (stopWordsAdditive != null)
+                this.stopWordsAdditive = stopWordsAdditive;
             return this;
         }
 
         public Builder setAnalyzer(String analyzer) {
-            this.analyzer = analyzer;
+            if (analyzer != null)
+                this.analyzer = analyzer;
             return this;
         }
 
         public Builder setMergePolicy(String mergePolicy) {
-            this.mergePolicy = mergePolicy;
+            if (mergePolicy != null)
+                this.mergePolicy = mergePolicy;
             return this;
         }
 

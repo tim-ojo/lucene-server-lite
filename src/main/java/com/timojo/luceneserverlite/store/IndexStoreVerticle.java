@@ -10,9 +10,11 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.apache.lucene.document.FieldType;
 
 import java.util.List;
 import java.util.Locale;
@@ -35,7 +37,7 @@ public class IndexStoreVerticle extends AbstractVerticle {
         final String indexName = (String) objectMessage.body();
 
         try {
-            if (indexName.equals(Globals.ALL_INDEXES_TOKEN)){
+            if (indexName.equals(Globals.ALL_INDEXES_TOKEN)) {
                 List<Index> indexList = indexStore.getAll();
                 objectMessage.reply(Json.encode(indexList));
             } else {
@@ -55,13 +57,10 @@ public class IndexStoreVerticle extends AbstractVerticle {
         final JsonObject json = (JsonObject) objectMessage.body();
         final String selectedIndex = (String) json.remove(Globals.SEL_INDEX_TOKEN);
 
-        // Kinda hacky but it makes the Json.decodeValue work for the Enum creation (Enum.valueOf())
-        upcaseFields(json);
-
         try {
             Index newIndex = Json.decodeValue(json.toString(), Index.class);
 
-            Index currIndex = selectedIndex != null ? indexStore.get(selectedIndex): indexStore.get(newIndex.getIndexName());
+            Index currIndex = selectedIndex != null ? indexStore.get(selectedIndex) : indexStore.get(newIndex.getIndexName());
             if (currIndex == null) { // Index doesn't exist already. Create new
                 newIndex.validateNew();
                 newIndex.setIndexStatus(IndexStatus.OK);
@@ -71,7 +70,7 @@ public class IndexStoreVerticle extends AbstractVerticle {
 
                 objectMessage.reply(Json.encode(newIndex));
             } else { // Modify existing index
-                if (currIndex.hasDifferences(newIndex)){
+                if (currIndex.hasDifferences(newIndex)) {
                     newIndex.validate();
                     currIndex.merge(newIndex);
                     indexStore.store(currIndex);
@@ -97,8 +96,7 @@ public class IndexStoreVerticle extends AbstractVerticle {
             if (index != null) {
                 FileManager.deleteIndexFolder(index.getIndexId());
                 objectMessage.reply(jsonObject.put("msg", "deleted index: " + indexName).toString());
-            }
-            else {
+            } else {
                 objectMessage.reply(jsonObject.put("msg", "index: " + indexName + " not found").toString());
             }
 
@@ -112,11 +110,40 @@ public class IndexStoreVerticle extends AbstractVerticle {
      *
      * @param jsonObject
      */
-    private void upcaseFields(JsonObject jsonObject) {
-        JsonObject fieldsJson = jsonObject.getJsonObject("fields");
-        if (fieldsJson != null) {
-            for (Map.Entry<String, Object> kvp : fieldsJson.getMap().entrySet())
-                fieldsJson.put(kvp.getKey(), ((String)kvp.getValue()).toUpperCase(Locale.ENGLISH));
+    private Index buildIndex(JsonObject jsonObject) {
+        Index.Builder indexBuilder = Index.newBuilder();
+
+        indexBuilder
+                .setIndexName(jsonObject.getString("indexName"))
+                .setIndexStatus(jsonObject.getString("indexStatus"))
+                .setCacheQueries(jsonObject.getBoolean("cacheQueries"))
+                .setCacheTime(jsonObject.getLong("cacheTime"), jsonObject.getString("cacheTimeUnit"))
+                .setUseCompoundFile(jsonObject.getBoolean("useCompoundFile"))
+                .setRamBufferSizeMB(jsonObject.getDouble("ramBufferSizeMB"))
+                .setStopWords(jsonObject.getString("stopWords"))
+                .setStopWordsAdditive(jsonObject.getBoolean("stopWordsAdditive"))
+                .setAnalyzer(jsonObject.getString("analyzer"))
+                .setMergePolicy(jsonObject.getString("mergePolicy"));
+
+        JsonArray fieldsJson = jsonObject.getJsonArray("fields", new JsonArray());
+
+        for (int i = 0; i < fieldsJson.size(); i++) {
+            JsonObject fieldJson = fieldsJson.getJsonObject(i);
+            FieldType fieldType = null;
+
+            String fieldName = fieldJson.getString("fieldName");
+            String type = fieldJson.getString("type");
+
+            if (type != null && !type.isEmpty()) {
+                fieldType = new FieldType(); // TODO - create different fieldType objects based on the type text
+            } else {
+                fieldType = new FieldType();
+                // TODO - complete
+            }
+
+            indexBuilder.addField(fieldName, fieldType);
         }
+
+        return indexBuilder.build();
     }
 }
